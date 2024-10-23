@@ -1,13 +1,40 @@
+let player: Player;
+const gameWidth = 1200;
+const gameHeight = 650;
+
+const movables: Movable[] = [];
+
+let prev_time = Date.now();
+let cur_time = 0;
+
+function gravity(delta: number): p5.Vector {
+    let scale = 100;
+    return new p5.Vector(0, delta * scale);
+}
+
+function createPlayer(): Player {
+  let playerWidth = 25;
+  let playerHeight = 25;
+  let playerImage = createGraphics(playerWidth, playerHeight);
+  playerImage.fill(0, 0, 255);
+  playerImage.rect(0, 0, playerWidth, playerHeight);
+  player = new Player(0, 0, playerImage);
+  player.add_force(gravity);
+  return player;
+}
+
 function setup() {
-  let width = 1200;
-  let height = 650;
-  createCanvas(width, height);
+  createCanvas(gameWidth, gameHeight);
+
+  let player = createPlayer();
+  movables.push(player);
 }
 
 function draw() {
   background(0);
-  let fb = createGraphics(100, 100);
-  fb.fill(0, 0, 255);
-  fb.rect(0, 0, 50, 50);
-  image(fb, 0, 0);
+  cur_time = Date.now();
+  let deltaSec = (cur_time - prev_time) / 1000;
+  player.update(deltaSec);
+  image(player.image, player.pos.x, player.pos.y);
+  prev_time = cur_time;
 }

@@ -2,11 +2,11 @@ type Force = (delta: number) => p5.Vector;
 
 class Collidable {
   public pos: p5.Vector;
-  protected image: Maybe<p5.Graphics>;
+  public image: p5.Graphics;
 
-  constructor(x: number, y: number) {
+  constructor(x: number, y: number, sprite: p5.Graphics) {
     this.pos = new p5.Vector(x, y);
-    this.image = null;
+    this.image = sprite;
   }
 }
 
@@ -14,8 +14,8 @@ class Movable extends Collidable {
   protected velocity: p5.Vector;
   protected forces: Force[];
 
-  constructor(x: number, y: number) {
-    super(x, y);
+  constructor(x: number, y: number, sprite: p5.Graphics) {
+    super(x, y, sprite);
     this.velocity = new p5.Vector(0, 0);
     this.forces = [];
   }
