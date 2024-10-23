@@ -1,7 +1,8 @@
 const gameWidth: number = 1200;
 const gameHeight: number = 650;
 const gravityVel: number = 100;
-const jumpVel: p5.Vector = new p5.Vector(0, -250);
+const jumpMaxVel: number = -150;
+const jumpDecay: number = 0.5; // how long for jump to give way to gravity
 const jumpInterval: number = 0.5; // how often player can jump
 const rightForce: p5.Vector = new p5.Vector(10, 0);
 const rightSinAmp: number = 100;
@@ -17,13 +18,30 @@ function gravity(): Movement {
   return (delta, movable) => {
     let change = new p5.Vector(0, gravityVel * delta);
     movable.translate(change);
-    return true;
   };
 }
 
 function generatePlayerMovements(): Movement[] {
   let movements = [];
   movements.push(gravity());
+  // Jump
+  const actualJumpVel = jumpMaxVel - gravityVel;
+  const jumpDecayRate = (-actualJumpVel) / jumpDecay;
+  const velIntegral = (t: number): number => {
+    return actualJumpVel * t + (jumpDecayRate / 2) * t * t;
+  };
+  const culmVelocity = (initTime: number, endTime: number) => {
+    return velIntegral(endTime) - velIntegral(initTime);
+  };
+  let timeSince = Infinity;
+  movements.push((delta, movable) => {
+    //if (timeSince > jumpInterval) {
+//
+    //}
+    if (timeSince < jumpInterval) {
+      let curTime = timeSince + delta;
+    }
+  });
   return movements;
 }
 

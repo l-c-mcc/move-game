@@ -1,4 +1,4 @@
-type Movement = (delta: number, movable: Movable) => boolean;
+type Movement = (delta: number, movable: Movable) => void;
 
 class Collidable {
   public pos: p5.Vector;
@@ -28,13 +28,9 @@ class Movable extends Collidable {
 
   public update(delta: number) {
     let reuse: Movement[] = [];
-    while (this.movements.length > 0) {
-      let movement = this.movements.pop();
-      if (movement(delta, this)) {
-        reuse.push(movement);
-      }
+    for (let movement of this.movements) {
+      movement(delta, this);
     }
-    this.movements = reuse;
   }
 
 }
