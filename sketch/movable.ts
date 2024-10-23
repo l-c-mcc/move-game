@@ -24,7 +24,11 @@ class Movable extends Collidable {
     this.forces.push(force);
   }
 
-  add_velocity(velocity: p5.Vector) {
+  get_velocity(): p5.Vector {
+    return this.velocity.copy();
+  }
+
+  set_velocity(velocity: p5.Vector) {
     this.velocity = velocity;
   }
 
@@ -32,6 +36,7 @@ class Movable extends Collidable {
     for (let force of this.forces) {
       this.velocity.add(force(delta));
     }
+    console.log(this.velocity);
     let translation = this.velocity.copy().mult(delta);
     this.pos.add(translation);
   }

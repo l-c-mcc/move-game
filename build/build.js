@@ -13,13 +13,17 @@ class Movable extends Collidable {
     add_force(force) {
         this.forces.push(force);
     }
-    add_velocity(velocity) {
+    get_velocity() {
+        return this.velocity.copy();
+    }
+    set_velocity(velocity) {
         this.velocity = velocity;
     }
     update(delta) {
         for (let force of this.forces) {
             this.velocity.add(force(delta));
         }
+        console.log(this.velocity);
         let translation = this.velocity.copy().mult(delta);
         this.pos.add(translation);
     }
@@ -28,9 +32,11 @@ class Player extends Movable {
 }
 const gameWidth = 1200;
 const gameHeight = 650;
-const gravityForce = 350;
+const gravityForce = 100;
 const jumpVel = new p5.Vector(0, -250);
 const jumpInterval = 0.5;
+const rightForce = new p5.Vector(10, 0);
+const rightSinAmp = 100;
 const movables = [];
 const playerActions = new Map();
 let prevTime = Date.now();
@@ -50,22 +56,37 @@ function gravity(acceleration) {
     }
 }
 function initPlayerActions() {
+    player.add_force(gravity());
     let lastJump = 0;
     playerActions.set("w", () => {
-        if (((curTime - lastJump) / 1000) > jumpInterval) {
+        if ((curTime - lastJump) / 1000 > jumpInterval) {
             lastJump = curTime;
-            player.add_velocity(jumpVel.copy());
+            let jump = jumpVel.copy();
+            let curVel = player.get_velocity();
+            player.set_velocity(new p5.Vector(curVel.x, jump.y));
+        }
+    });
+    let prevRightMovTime = 0;
+    player.add_force((delta) => {
+        if (keyIsPressed === true && key == "d") {
+            let curRightMovTime = prevRightMovTime + delta;
+            let time_scale = 24;
+            let verticalForce = (-cos(curRightMovTime * time_scale) + cos(prevRightMovTime * time_scale)) * rightSinAmp;
+            let velocity = rightForce.copy();
+            velocity.y = -gravityForce * delta;
+            player.pos.y += verticalForce;
+            prevRightMovTime = curRightMovTime;
+            return velocity;
         }
     });
 }
 function createPlayer() {
-    let playerWidth = 25;
-    let playerHeight = 25;
+    let playerWidth = 18;
+    let playerHeight = 18;
     let playerImage = createGraphics(playerWidth, playerHeight);
     playerImage.fill(0, 0, 255);
     playerImage.rect(0, 0, playerWidth, playerHeight);
-    player = new Player(0, 0, playerImage);
-    player.add_force(gravity());
+    player = new Player(0, height / 2, playerImage);
     return player;
 }
 function setup() {
@@ -76,6 +97,10 @@ function setup() {
 }
 function draw() {
     background(0);
+    if (keyIsPressed) {
+        if (key === "d") {
+        }
+    }
     curTime = Date.now();
     deltaSec = (curTime - prevTime) / 1000;
     player.update(deltaSec);

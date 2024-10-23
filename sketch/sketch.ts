@@ -1,8 +1,10 @@
 const gameWidth: number = 1200;
 const gameHeight: number = 650;
-const gravityForce: number = 350;
+const gravityForce: number = 100;
 const jumpVel: p5.Vector = new p5.Vector(0, -250);
 const jumpInterval: number = 0.5; // how often player can jump
+const rightForce: p5.Vector = new p5.Vector(10, 0);
+const rightSinAmp: number = 100;
 
 const movables: Movable[] = [];
 const playerActions: Map<string, () => void> = new Map();
@@ -25,24 +27,41 @@ function gravity(acceleration?: p5.Vector): Force {
 }
 
 function initPlayerActions() {
+  player.add_force(gravity());
   // Set jump
   let lastJump = 0;
   playerActions.set("w", () => {
     if ((curTime - lastJump) / 1000 > jumpInterval) {
       lastJump = curTime;
-      player.add_velocity(jumpVel.copy());
+      let jump = jumpVel.copy();
+      let curVel = player.get_velocity();
+      player.set_velocity(new p5.Vector(curVel.x, jump.y));
+    }
+  });
+  // Set right
+  let prevRightMovTime: number = 0;
+  player.add_force((delta: number) => {
+    if (keyIsPressed === true && key == "d") {
+      let curRightMovTime: number = prevRightMovTime + delta;
+      let time_scale = 24;
+      let verticalForce =
+        (-cos(curRightMovTime * time_scale) + cos(prevRightMovTime * time_scale)) * rightSinAmp;
+      let velocity = rightForce.copy();
+      velocity.y = -gravityForce * delta;
+      player.pos.y += verticalForce;
+      prevRightMovTime = curRightMovTime;
+      return velocity;
     }
   });
 }
 
 function createPlayer(): Player {
-  let playerWidth = 25;
-  let playerHeight = 25;
+  let playerWidth = 18;
+  let playerHeight = 18;
   let playerImage = createGraphics(playerWidth, playerHeight);
   playerImage.fill(0, 0, 255);
   playerImage.rect(0, 0, playerWidth, playerHeight);
-  player = new Player(0, 0, playerImage);
-  player.add_force(gravity());
+  player = new Player(0, height / 2, playerImage);
   return player;
 }
 
@@ -56,6 +75,10 @@ function setup() {
 
 function draw() {
   background(0);
+  if (keyIsPressed) {
+    if (key === "d") {
+    }
+  }
   curTime = Date.now();
   deltaSec = (curTime - prevTime) / 1000;
   player.update(deltaSec);
