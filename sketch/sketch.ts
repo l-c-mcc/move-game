@@ -1,15 +1,23 @@
-let player: Player;
 const gameWidth = 1200;
 const gameHeight = 650;
+const gravityAccel = 50;
 
 const movables: Movable[] = [];
 
 let prev_time = Date.now();
 let cur_time = 0;
+let player: Player;
 
-function gravity(delta: number): p5.Vector {
-    let scale = 100;
-    return new p5.Vector(0, delta * scale);
+function gravity(acceleration?: p5.Vector): Force {
+    if (acceleration == null) {
+        return (delta: number) => {
+            return new p5.Vector(0, gravityAccel * delta);
+        };
+    } else {
+        return (delta: number) => {
+            return new p5.Vector(acceleration.x * delta, acceleration.y * delta);
+        };
+    }
 }
 
 function createPlayer(): Player {
@@ -19,7 +27,7 @@ function createPlayer(): Player {
   playerImage.fill(0, 0, 255);
   playerImage.rect(0, 0, playerWidth, playerHeight);
   player = new Player(0, 0, playerImage);
-  player.add_force(gravity);
+  player.add_force(gravity());
   return player;
 }
 

@@ -52,9 +52,17 @@ var gameHeight = 650;
 var movables = [];
 var prev_time = Date.now();
 var cur_time = 0;
-function gravity(delta) {
-    var scale = 100;
-    return new p5.Vector(0, delta * scale);
+function gravity(acceleration) {
+    if (acceleration == null) {
+        return function (delta) {
+            return new p5.Vector(0, 50 * delta);
+        };
+    }
+    else {
+        return function (delta) {
+            return new p5.Vector(acceleration.x * delta, acceleration.y * delta);
+        };
+    }
 }
 function createPlayer() {
     var playerWidth = 25;
@@ -63,7 +71,7 @@ function createPlayer() {
     playerImage.fill(0, 0, 255);
     playerImage.rect(0, 0, playerWidth, playerHeight);
     player = new Player(0, 0, playerImage);
-    player.add_force(gravity);
+    player.add_force(gravity());
     return player;
 }
 function setup() {
