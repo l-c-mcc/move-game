@@ -1,9 +1,9 @@
 const gameWidth: number = 1200;
 const gameHeight: number = 650;
 const gravityVel: number = 100;
-const jumpMaxVel: number = -150;
-const jumpDecay: number = 0.5; // how long for jump to give way to gravity
-const jumpInterval: number = 0.5; // how often player can jump
+const jumpMaxVel: number = -100;
+const jumpDecay: number = 0.1; // how long for jump to give way to gravity
+const jumpInterval: number = 0.25; // how often player can jump
 const rightForce: p5.Vector = new p5.Vector(10, 0);
 const rightSinAmp: number = 100;
 
@@ -23,9 +23,10 @@ function gravity(): Movement {
 
 function generatePlayerMovements(): Movement[] {
   let movements = [];
+  // Set gravity
   movements.push(gravity());
   // Jump
-  const actualJumpVel = jumpMaxVel - gravityVel;
+  const actualJumpVel = jumpMaxVel;
   const jumpDecayRate = (-actualJumpVel) / jumpDecay;
   const velIntegral = (t: number): number => {
     return actualJumpVel * t + (jumpDecayRate / 2) * t * t;
@@ -33,13 +34,30 @@ function generatePlayerMovements(): Movement[] {
   const culmVelocity = (initTime: number, endTime: number) => {
     return velIntegral(endTime) - velIntegral(initTime);
   };
-  let timeSince = Infinity;
-  movements.push((delta, movable) => {
-    //if (timeSince > jumpInterval) {
-//
-    //}
-    if (timeSince < jumpInterval) {
-      let curTime = timeSince + delta;
+  let timeSinceJump: number = Infinity;
+  // states:
+  // player jumping, cannot jump again
+  // player not jumping, cannot jump again
+  // player jumping, can jump again (not currently possible)
+  // player not jumping, can jump again
+
+  // check
+  // 1. If player can jump, sees if player jumps
+  // 2. If player is jumping, handle
+  // 3. Always update time
+  movements.push((delta: number, movable: Movable) => {
+    if (timeSinceJump > jumpInterval) {
+      if (keyIsDown(87 /*w*/)) {
+        timeSinceJump = 0;
+      }
+    }
+    const lastTime = timeSinceJump;
+    timeSinceJump += delta;
+    if (lastTime < jumpDecay) {
+      console.log("here");
+      const endTime = max(timeSinceJump, jumpDecay);
+      const velocity = culmVelocity(lastTime, endTime);
+      movable.translate(new p5.Vector(0, velocity));
     }
   });
   return movements;

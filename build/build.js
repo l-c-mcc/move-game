@@ -16,14 +16,9 @@ class Movable extends Collidable {
         this.movements.push(movement);
     }
     update(delta) {
-        let reuse = [];
-        while (this.movements.length > 0) {
-            let movement = this.movements.pop();
-            if (movement(delta, this)) {
-                reuse.push(movement);
-            }
+        for (let movement of this.movements) {
+            movement(delta, this);
         }
-        this.movements = reuse;
     }
 }
 class Player extends Movable {
@@ -31,8 +26,9 @@ class Player extends Movable {
 const gameWidth = 1200;
 const gameHeight = 650;
 const gravityVel = 100;
-const jumpVel = new p5.Vector(0, -250);
-const jumpInterval = 0.5;
+const jumpMaxVel = -100;
+const jumpDecay = 0.1;
+const jumpInterval = 0.25;
 const rightForce = new p5.Vector(10, 0);
 const rightSinAmp = 100;
 const movables = [];
@@ -44,12 +40,35 @@ function gravity() {
     return (delta, movable) => {
         let change = new p5.Vector(0, gravityVel * delta);
         movable.translate(change);
-        return true;
     };
 }
 function generatePlayerMovements() {
     let movements = [];
     movements.push(gravity());
+    const actualJumpVel = jumpMaxVel;
+    const jumpDecayRate = (-actualJumpVel) / jumpDecay;
+    const velIntegral = (t) => {
+        return actualJumpVel * t + (jumpDecayRate / 2) * t * t;
+    };
+    const culmVelocity = (initTime, endTime) => {
+        return velIntegral(endTime) - velIntegral(initTime);
+    };
+    let timeSinceJump = Infinity;
+    movements.push((delta, movable) => {
+        if (timeSinceJump > jumpInterval) {
+            if (keyIsDown(87)) {
+                timeSinceJump = 0;
+            }
+        }
+        const lastTime = timeSinceJump;
+        timeSinceJump += delta;
+        if (lastTime < jumpDecay) {
+            console.log("here");
+            const endTime = max(timeSinceJump, jumpDecay);
+            const velocity = culmVelocity(lastTime, endTime);
+            movable.translate(new p5.Vector(0, velocity));
+        }
+    });
     return movements;
 }
 function createPlayer() {

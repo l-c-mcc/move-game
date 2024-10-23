@@ -27,7 +27,6 @@ class Movable extends Collidable {
   }
 
   public update(delta: number) {
-    let reuse: Movement[] = [];
     for (let movement of this.movements) {
       movement(delta, this);
     }
