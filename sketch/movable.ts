@@ -1,4 +1,4 @@
-type Force = (delta: number) => p5.Vector;
+type Movement = (delta: number, movable: Movable) => boolean;
 
 class Collidable {
   public pos: p5.Vector;
@@ -11,35 +11,32 @@ class Collidable {
 }
 
 class Movable extends Collidable {
-  protected velocity: p5.Vector;
-  protected forces: Force[];
+  protected movements: Movement[];
 
   constructor(x: number, y: number, sprite: p5.Graphics) {
     super(x, y, sprite);
-    this.velocity = new p5.Vector(0, 0);
-    this.forces = [];
+    this.movements = [];
   }
 
-  add_force(force: Force) {
-    this.forces.push(force);
+  public translate(vec: p5.Vector) {
+    this.pos.add(vec);
   }
 
-  get_velocity(): p5.Vector {
-    return this.velocity.copy();
+  public addMovement(movement: Movement) {
+    this.movements.push(movement);
   }
 
-  set_velocity(velocity: p5.Vector) {
-    this.velocity = velocity;
-  }
-
-  update(delta: number) {
-    for (let force of this.forces) {
-      this.velocity.add(force(delta));
+  public update(delta: number) {
+    let reuse: Movement[] = [];
+    while (this.movements.length > 0) {
+      let movement = this.movements.pop();
+      if (movement(delta, this)) {
+        reuse.push(movement);
+      }
     }
-    console.log(this.velocity);
-    let translation = this.velocity.copy().mult(delta);
-    this.pos.add(translation);
+    this.movements = reuse;
   }
+
 }
 
 class Player extends Movable {}
