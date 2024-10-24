@@ -25,12 +25,15 @@ class Player extends Movable {
 }
 const gameWidth = 1200;
 const gameHeight = 650;
-const gravityVel = 100;
-const jumpMaxVel = -100;
-const jumpDecay = 0.1;
+const gravityVel = 200;
+const jumpMaxVel = -700;
+const jumpDecay = 0.5;
 const jumpInterval = 0.25;
-const rightForce = new p5.Vector(10, 0);
-const rightSinAmp = 100;
+const rightVel = 200;
+const rightSinAmp = 600;
+const rightSinOscSpeed = 10;
+const leftInterval = 0.5;
+const leftTeleport = new p5.Vector(-200, -50);
 const movables = [];
 let prevTime = Date.now();
 let curTime = 0;
@@ -42,10 +45,8 @@ function gravity() {
         movable.translate(change);
     };
 }
-function generatePlayerMovements() {
-    let movements = [];
-    movements.push(gravity());
-    const actualJumpVel = jumpMaxVel;
+function jump() {
+    const actualJumpVel = jumpMaxVel - gravityVel;
     const jumpDecayRate = (-actualJumpVel) / jumpDecay;
     const velIntegral = (t) => {
         return actualJumpVel * t + (jumpDecayRate / 2) * t * t;
@@ -54,7 +55,7 @@ function generatePlayerMovements() {
         return velIntegral(endTime) - velIntegral(initTime);
     };
     let timeSinceJump = Infinity;
-    movements.push((delta, movable) => {
+    return (delta, movable) => {
         if (timeSinceJump > jumpInterval) {
             if (keyIsDown(87)) {
                 timeSinceJump = 0;
@@ -63,12 +64,37 @@ function generatePlayerMovements() {
         const lastTime = timeSinceJump;
         timeSinceJump += delta;
         if (lastTime < jumpDecay) {
-            console.log("here");
-            const endTime = max(timeSinceJump, jumpDecay);
+            const endTime = min(timeSinceJump, jumpDecay);
             const velocity = culmVelocity(lastTime, endTime);
             movable.translate(new p5.Vector(0, velocity));
         }
-    });
+    };
+}
+function rightwardMovement() {
+    let timeTotal = 0;
+    return (delta, movable) => {
+        if (keyIsDown(68)) {
+            movable.translate((new p5.Vector(rightVel, -gravityVel + sin(timeTotal * rightSinOscSpeed) * rightSinAmp)).mult(delta));
+            timeTotal += delta;
+        }
+    };
+}
+function leftwardMovement() {
+    let lastLeft = Infinity;
+    return (delta, movable) => {
+        if (keyIsDown(65) && lastLeft > leftInterval) {
+            movable.translate(leftTeleport.copy());
+            lastLeft = 0;
+        }
+        lastLeft += delta;
+    };
+}
+function generatePlayerMovements() {
+    let movements = [];
+    movements.push(gravity());
+    movements.push(jump());
+    movements.push(rightwardMovement());
+    movements.push(leftwardMovement());
     return movements;
 }
 function createPlayer() {

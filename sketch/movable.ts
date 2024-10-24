@@ -31,7 +31,6 @@ class Movable extends Collidable {
       movement(delta, this);
     }
   }
-
 }
 
 class Player extends Movable {}
