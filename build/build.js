@@ -23,17 +23,17 @@ class Movable extends Collidable {
 }
 class Player extends Movable {
 }
-const gameWidth = 1200;
-const gameHeight = 650;
-const gravityVel = 200;
-const jumpMaxVel = -700;
+const gameWidth = 1800;
+const gameHeight = 900;
+const gravityVel = 1000;
+const jumpMaxVel = -1200;
 const jumpDecay = 0.5;
 const jumpInterval = 0.25;
 const rightVel = 200;
 const rightSinAmp = 600;
 const rightSinOscSpeed = 10;
 const leftInterval = 0.5;
-const leftTeleport = new p5.Vector(-200, -50);
+const leftTeleport = new p5.Vector(-200, -gravityVel * leftInterval);
 const movables = [];
 let prevTime = Date.now();
 let curTime = 0;
@@ -47,7 +47,7 @@ function gravity() {
 }
 function jump() {
     const actualJumpVel = jumpMaxVel - gravityVel;
-    const jumpDecayRate = (-actualJumpVel) / jumpDecay;
+    const jumpDecayRate = -actualJumpVel / jumpDecay;
     const velIntegral = (t) => {
         return actualJumpVel * t + (jumpDecayRate / 2) * t * t;
     };
@@ -74,7 +74,7 @@ function rightwardMovement() {
     let timeTotal = 0;
     return (delta, movable) => {
         if (keyIsDown(68)) {
-            movable.translate((new p5.Vector(rightVel, -gravityVel + sin(timeTotal * rightSinOscSpeed) * rightSinAmp)).mult(delta));
+            movable.translate(new p5.Vector(rightVel, -gravityVel + sin(timeTotal * rightSinOscSpeed) * rightSinAmp).mult(delta));
             timeTotal += delta;
         }
     };

@@ -1,14 +1,14 @@
-const gameWidth: number = 1200;
-const gameHeight: number = 650;
-const gravityVel: number = 200;
-const jumpMaxVel: number = -700;
+const gameWidth: number = 1800;
+const gameHeight: number = 900;
+const gravityVel: number = 1000;
+const jumpMaxVel: number = -1200;
 const jumpDecay: number = 0.5; // how long for jump to give way to gravity
 const jumpInterval: number = 0.25; // how often player can jump
 const rightVel: number = 200;
 const rightSinAmp: number = 600;
 const rightSinOscSpeed: number = 10;
 const leftInterval: number = 0.5;
-const leftTeleport: p5.Vector = new p5.Vector(-200, -50);
+const leftTeleport: p5.Vector = new p5.Vector(-200, -gravityVel * leftInterval);
 
 const movables: Movable[] = [];
 
