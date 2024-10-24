@@ -33,7 +33,7 @@ class Player extends Movable {
 }
 const gameWidth = 1800;
 const gameHeight = 900;
-const gravityVel = 1000;
+const gravityVel = 700;
 const followVel = 500;
 const jumpMaxVel = -1200;
 const jumpDecay = 0.5;
@@ -171,7 +171,6 @@ function spawnObstacle() {
     const width = randomInt(obstacleMinSize, obstacleMaxSize);
     const height = randomInt(obstacleMinSize, obstacleMaxSize);
     const speed = randomInt(obstacleMinSize, obstacleMaxSpeed);
-    let spawnPos = new p5.Vector(0, 0);
     let movement = null;
     let x = null;
     let y = null;

@@ -1,6 +1,6 @@
 const gameWidth: number = 1800;
 const gameHeight: number = 900;
-const gravityVel: number = 1000;
+const gravityVel: number = 700;
 const followVel: number = 500;
 const jumpMaxVel: number = -1200;
 const jumpDecay: number = 0.5; // how long for jump to give way to gravity
