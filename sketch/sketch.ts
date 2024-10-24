@@ -11,11 +11,13 @@ const leftInterval: number = 0.5;
 const leftTeleport: p5.Vector = new p5.Vector(-200, -gravityVel * leftInterval);
 
 const movables: Movable[] = [];
+const collidables: Collidable[] = [];
 
 let prevTime: number = Date.now();
 let curTime: number = 0;
 let deltaSec: number = 0;
 let player: Player;
+let game: boolean = true;
 
 function gravity(): Movement {
   return (delta, movable) => {
@@ -108,6 +110,15 @@ function createPlayer(): Player {
   return player;
 }
 
+function createObstacle(x: number, y: number, width: number, height: number, movement: Movement): Movable {
+  let image = createGraphics(width, height);
+  image.fill(255, 140, 0);
+  image.rect(0, 0, width, height);
+  let obstacle = new Movable(x, y, image, width, height);
+  obstacle.addMovement(movement);
+  return obstacle;
+}
+
 function setup() {
   createCanvas(gameWidth, gameHeight);
 
@@ -117,9 +128,20 @@ function setup() {
 
 function draw() {
   background(0);
-  curTime = Date.now();
-  deltaSec = (curTime - prevTime) / 1000;
-  player.update(deltaSec);
-  image(player.image, player.pos.x, player.pos.y);
+  if (game) {
+    curTime = Date.now();
+    deltaSec = (curTime - prevTime) / 1000;
+    for (let movable of movables) {
+      movable.update(deltaSec);
+      image(movable.image, movable.pos.x, movable.pos.y);
+    }
+    for (let collidable of collidables) {
+      if (collidable !== player) {
+        if (player.collision(collidable)) {
+          game = false;
+        }
+      }
+    }
+  }
   prevTime = curTime;
 }
