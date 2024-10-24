@@ -180,7 +180,6 @@ function spawnObstacle() {
   const width = randomInt(obstacleMinSize, obstacleMaxSize);
   const height = randomInt(obstacleMinSize, obstacleMaxSize);
   const speed = randomInt(obstacleMinSize, obstacleMaxSpeed);
-  let spawnPos = new p5.Vector(0, 0);
   let movement: Maybe<Movement> = null;
   let x: Maybe<number> = null;
   let y: Maybe<number> = null;
