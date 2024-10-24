@@ -33,7 +33,8 @@ class Player extends Movable {
 }
 const gameWidth = 1800;
 const gameHeight = 900;
-const gravityVel = 400;
+const gravityVel = 1000;
+const followVel = 500;
 const jumpMaxVel = -1200;
 const jumpDecay = 0.5;
 const jumpInterval = 0.25;
@@ -74,14 +75,14 @@ function findClosestBelowDir(above) {
 function gravity() {
     return (delta, movable) => {
         const closest = findClosestBelowDir(movable);
-        if (closest === null) {
-            let change = new p5.Vector(0, gravityVel * delta);
-            movable.translate(change);
+        if (closest !== null && keyIsDown(83)) {
+            const norm = closest.normalize();
+            norm.mult(-followVel * delta);
+            movable.translate(norm);
         }
         else {
-            const norm = closest.normalize();
-            norm.mult(-gravityVel * delta);
-            movable.translate(norm);
+            let change = new p5.Vector(0, gravityVel * delta);
+            movable.translate(change);
         }
     };
 }

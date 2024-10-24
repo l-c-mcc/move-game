@@ -1,6 +1,7 @@
 const gameWidth: number = 1800;
 const gameHeight: number = 900;
-const gravityVel: number = 400;
+const gravityVel: number = 1000;
+const followVel: number = 500;
 const jumpMaxVel: number = -1200;
 const jumpDecay: number = 0.5; // how long for jump to give way to gravity
 const jumpInterval: number = 0.25; // how often player can jump
@@ -42,16 +43,18 @@ function findClosestBelowDir(above: Movable): Maybe<p5.Vector> {
   return aboveToBelow;
 }
 
+
+// to-do: detach from player logic
 function gravity(): Movement {
   return (delta, movable) => {
     const closest = findClosestBelowDir(movable);
-    if (closest === null) {
+    if (closest !== null && keyIsDown(83 /*s*/)) {
+      const norm = closest.normalize();
+      norm.mult(-followVel * delta);
+      movable.translate(norm);
+    } else {
       let change = new p5.Vector(0, gravityVel * delta);
       movable.translate(change);
-    } else {
-      const norm = closest.normalize();
-      norm.mult(-gravityVel * delta);
-      movable.translate(norm);
     }
   };
 }
