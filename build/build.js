@@ -33,7 +33,7 @@ class Player extends Movable {
 }
 const gameWidth = 1800;
 const gameHeight = 900;
-const gravityVel = 1000;
+const gravityVel = 400;
 const jumpMaxVel = -1200;
 const jumpDecay = 0.5;
 const jumpInterval = 0.25;
@@ -54,10 +54,35 @@ let curTime = 0;
 let deltaSec = 0;
 let player;
 let game = true;
+function findClosestBelowDir(above) {
+    let below = null;
+    const aboveVec = above.pos.copy();
+    let aboveToBelow = null;
+    let aboveToBelowDis = Infinity;
+    for (let movable of movables) {
+        if (movable !== above && aboveVec.y < movable.pos.y) {
+            const curVec = aboveVec.copy().sub(movable.pos);
+            const curDis = curVec.mag();
+            if (curDis < aboveToBelowDis) {
+                aboveToBelow = curVec;
+                aboveToBelowDis = curDis;
+            }
+        }
+    }
+    return aboveToBelow;
+}
 function gravity() {
     return (delta, movable) => {
-        let change = new p5.Vector(0, gravityVel * delta);
-        movable.translate(change);
+        const closest = findClosestBelowDir(movable);
+        if (closest === null) {
+            let change = new p5.Vector(0, gravityVel * delta);
+            movable.translate(change);
+        }
+        else {
+            const norm = closest.normalize();
+            norm.mult(-gravityVel * delta);
+            movable.translate(norm);
+        }
     };
 }
 function jump() {

@@ -1,6 +1,6 @@
 const gameWidth: number = 1800;
 const gameHeight: number = 900;
-const gravityVel: number = 1000;
+const gravityVel: number = 400;
 const jumpMaxVel: number = -1200;
 const jumpDecay: number = 0.5; // how long for jump to give way to gravity
 const jumpInterval: number = 0.25; // how often player can jump
@@ -24,10 +24,35 @@ let deltaSec: number = 0;
 let player: Player;
 let game: boolean = true;
 
+function findClosestBelowDir(above: Movable): Maybe<p5.Vector> {
+  let below: Maybe<Movable> = null;
+  const aboveVec = above.pos.copy();
+  let aboveToBelow: Maybe<p5.Vector> = null;
+  let aboveToBelowDis: number = Infinity;
+  for (let movable of movables) {
+    if (movable !== above && aboveVec.y < movable.pos.y) {
+      const curVec = aboveVec.copy().sub(movable.pos);
+      const curDis = curVec.mag();
+      if (curDis < aboveToBelowDis) {
+        aboveToBelow = curVec;
+        aboveToBelowDis = curDis;
+      }
+    }
+  }
+  return aboveToBelow;
+}
+
 function gravity(): Movement {
   return (delta, movable) => {
-    let change = new p5.Vector(0, gravityVel * delta);
-    movable.translate(change);
+    const closest = findClosestBelowDir(movable);
+    if (closest === null) {
+      let change = new p5.Vector(0, gravityVel * delta);
+      movable.translate(change);
+    } else {
+      const norm = closest.normalize();
+      norm.mult(-gravityVel * delta);
+      movable.translate(norm);
+    }
   };
 }
 
@@ -108,7 +133,13 @@ function createPlayer(): Player {
   let playerImage = createGraphics(playerWidth, playerHeight);
   playerImage.fill(0, 0, 255);
   playerImage.rect(0, 0, playerWidth, playerHeight);
-  let player = new Player(gameWidth / 2, 0, playerImage, playerWidth, playerHeight);
+  let player = new Player(
+    gameWidth / 2,
+    0,
+    playerImage,
+    playerWidth,
+    playerHeight,
+  );
   generatePlayerMovements().forEach((movement) => {
     player.addMovement(movement);
   });
