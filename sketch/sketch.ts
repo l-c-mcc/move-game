@@ -108,7 +108,7 @@ function createPlayer(): Player {
   let playerImage = createGraphics(playerWidth, playerHeight);
   playerImage.fill(0, 0, 255);
   playerImage.rect(0, 0, playerWidth, playerHeight);
-  let player = new Player(0, 0, playerImage, playerWidth, playerHeight);
+  let player = new Player(gameWidth / 2, 0, playerImage, playerWidth, playerHeight);
   generatePlayerMovements().forEach((movement) => {
     player.addMovement(movement);
   });
