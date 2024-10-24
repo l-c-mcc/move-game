@@ -4,11 +4,16 @@ const gravityVel: number = 1000;
 const jumpMaxVel: number = -1200;
 const jumpDecay: number = 0.5; // how long for jump to give way to gravity
 const jumpInterval: number = 0.25; // how often player can jump
-const rightVel: number = 200;
+const rightVel: number = 600;
 const rightSinAmp: number = 600;
 const rightSinOscSpeed: number = 10;
 const leftInterval: number = 0.5;
 const leftTeleport: p5.Vector = new p5.Vector(-200, -gravityVel * leftInterval);
+const spawnChance: number = 0.03;
+const obstacleMinSpeed: number = 300;
+const obstacleMaxSpeed: number = 900;
+const obstacleMinSize: number = 15;
+const obstacleMaxSize: number = 100;
 
 const movables: Movable[] = [];
 const collidables: Collidable[] = [];
@@ -110,7 +115,13 @@ function createPlayer(): Player {
   return player;
 }
 
-function createObstacle(x: number, y: number, width: number, height: number, movement: Movement): Movable {
+function createObstacle(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  movement: Movement,
+): Movable {
   let image = createGraphics(width, height);
   image.fill(255, 140, 0);
   image.rect(0, 0, width, height);
@@ -119,16 +130,69 @@ function createObstacle(x: number, y: number, width: number, height: number, mov
   return obstacle;
 }
 
+function straightLineMovement(x: number, y: number): Movement {
+  return (delta, movable) => {
+    movable.translate(new p5.Vector(x, y).mult(delta));
+  };
+}
+
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function spawnObstacle() {
+  /** 1 = Start Up, 2 = Left, 3 = Down, 4 = Right */
+  const direction = randomInt(1, 4);
+  const width = randomInt(obstacleMinSize, obstacleMaxSize);
+  const height = randomInt(obstacleMinSize, obstacleMaxSize);
+  const speed = randomInt(obstacleMinSize, obstacleMaxSpeed);
+  let spawnPos = new p5.Vector(0, 0);
+  let movement: Maybe<Movement> = null;
+  let x: Maybe<number> = null;
+  let y: Maybe<number> = null;
+  switch (direction) {
+    case 1:
+      movement = straightLineMovement(0, speed);
+      x = randomInt(0, gameWidth - 1 - width);
+      y = -height;
+      break;
+    case 2:
+      movement = straightLineMovement(speed, 0);
+      x = -width;
+      y = randomInt(0, gameHeight - 1 - height);
+      break;
+    case 3:
+      movement = straightLineMovement(0, -speed);
+      x = randomInt(0, gameWidth - 1 - width);
+      y = gameHeight;
+      break;
+    case 4:
+      movement = straightLineMovement(-speed, 0);
+      x = gameWidth;
+      y = randomInt(0, gameHeight - 1 - height);
+      break;
+  }
+  if (movement && x && y) {
+    const obstacle = createObstacle(x, y, width, height, movement);
+    collidables.push(obstacle);
+    movables.push(obstacle);
+  }
+}
+
 function setup() {
   createCanvas(gameWidth, gameHeight);
 
   player = createPlayer();
+  collidables.push(player);
   movables.push(player);
 }
 
 function draw() {
   background(0);
   if (game) {
+    if (Math.random() < spawnChance) {
+      spawnObstacle();
+    }
     curTime = Date.now();
     deltaSec = (curTime - prevTime) / 1000;
     for (let movable of movables) {

@@ -1,12 +1,20 @@
 class Collidable {
-    constructor(x, y, sprite) {
+    constructor(x, y, sprite, width, height) {
         this.pos = new p5.Vector(x, y);
+        this.widthHeight = new p5.Vector(width, height);
         this.image = sprite;
+    }
+    collision(other) {
+        const verticalCollision = other.pos.y + other.widthHeight.y > this.pos.y &&
+            other.pos.y < this.pos.y + this.widthHeight.y;
+        const horizontalCollision = other.pos.x < this.pos.x + other.widthHeight.x &&
+            other.pos.x + other.widthHeight.x > this.pos.x;
+        return verticalCollision && horizontalCollision;
     }
 }
 class Movable extends Collidable {
-    constructor(x, y, sprite) {
-        super(x, y, sprite);
+    constructor(x, y, sprite, width, height) {
+        super(x, y, sprite, width, height);
         this.movements = [];
     }
     translate(vec) {
@@ -29,16 +37,23 @@ const gravityVel = 1000;
 const jumpMaxVel = -1200;
 const jumpDecay = 0.5;
 const jumpInterval = 0.25;
-const rightVel = 200;
+const rightVel = 600;
 const rightSinAmp = 600;
 const rightSinOscSpeed = 10;
 const leftInterval = 0.5;
 const leftTeleport = new p5.Vector(-200, -gravityVel * leftInterval);
+const spawnChance = 0.03;
+const obstacleMinSpeed = 300;
+const obstacleMaxSpeed = 900;
+const obstacleMinSize = 15;
+const obstacleMaxSize = 100;
 const movables = [];
+const collidables = [];
 let prevTime = Date.now();
 let curTime = 0;
 let deltaSec = 0;
 let player;
+let game = true;
 function gravity() {
     return (delta, movable) => {
         let change = new p5.Vector(0, gravityVel * delta);
@@ -103,23 +118,91 @@ function createPlayer() {
     let playerImage = createGraphics(playerWidth, playerHeight);
     playerImage.fill(0, 0, 255);
     playerImage.rect(0, 0, playerWidth, playerHeight);
-    let player = new Player(0, 0, playerImage);
+    let player = new Player(0, 0, playerImage, playerWidth, playerHeight);
     generatePlayerMovements().forEach((movement) => {
         player.addMovement(movement);
     });
     return player;
 }
+function createObstacle(x, y, width, height, movement) {
+    let image = createGraphics(width, height);
+    image.fill(255, 140, 0);
+    image.rect(0, 0, width, height);
+    let obstacle = new Movable(x, y, image, width, height);
+    obstacle.addMovement(movement);
+    return obstacle;
+}
+function straightLineMovement(x, y) {
+    return (delta, movable) => {
+        movable.translate(new p5.Vector(x, y).mult(delta));
+    };
+}
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function spawnObstacle() {
+    const direction = randomInt(1, 4);
+    const width = randomInt(obstacleMinSize, obstacleMaxSize);
+    const height = randomInt(obstacleMinSize, obstacleMaxSize);
+    const speed = randomInt(obstacleMinSize, obstacleMaxSpeed);
+    let spawnPos = new p5.Vector(0, 0);
+    let movement = null;
+    let x = null;
+    let y = null;
+    switch (direction) {
+        case 1:
+            movement = straightLineMovement(0, speed);
+            x = randomInt(0, gameWidth - 1 - width);
+            y = -height;
+            break;
+        case 2:
+            movement = straightLineMovement(speed, 0);
+            x = -width;
+            y = randomInt(0, gameHeight - 1 - height);
+            break;
+        case 3:
+            movement = straightLineMovement(0, -speed);
+            x = randomInt(0, gameWidth - 1 - width);
+            y = gameHeight;
+            break;
+        case 4:
+            movement = straightLineMovement(-speed, 0);
+            x = gameWidth;
+            y = randomInt(0, gameHeight - 1 - height);
+            break;
+    }
+    if (movement && x && y) {
+        const obstacle = createObstacle(x, y, width, height, movement);
+        collidables.push(obstacle);
+        movables.push(obstacle);
+    }
+}
 function setup() {
     createCanvas(gameWidth, gameHeight);
     player = createPlayer();
+    collidables.push(player);
     movables.push(player);
 }
 function draw() {
     background(0);
-    curTime = Date.now();
-    deltaSec = (curTime - prevTime) / 1000;
-    player.update(deltaSec);
-    image(player.image, player.pos.x, player.pos.y);
+    if (game) {
+        if (Math.random() < spawnChance) {
+            spawnObstacle();
+        }
+        curTime = Date.now();
+        deltaSec = (curTime - prevTime) / 1000;
+        for (let movable of movables) {
+            movable.update(deltaSec);
+            image(movable.image, movable.pos.x, movable.pos.y);
+        }
+        for (let collidable of collidables) {
+            if (collidable !== player) {
+                if (player.collision(collidable)) {
+                    game = false;
+                }
+            }
+        }
+    }
     prevTime = curTime;
 }
 //# sourceMappingURL=build.js.map

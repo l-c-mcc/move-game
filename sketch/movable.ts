@@ -1,19 +1,5 @@
 type Movement = (delta: number, movable: Movable) => void;
 
-class Collision {
-  public vertical: boolean;
-  public horizontal: boolean;
-
-  constructor(vertical: boolean, horizontal: boolean) {
-    this.vertical = vertical;
-    this.horizontal = horizontal;
-  }
-
-  public isCollided(): boolean {
-    return this.vertical || this.horizontal;
-  }
-}
-
 class Collidable {
   public pos: p5.Vector;
   public widthHeight: p5.Vector;
@@ -31,14 +17,14 @@ class Collidable {
     this.image = sprite;
   }
 
-  public collision(other: Collidable): Collision {
+  public collision(other: Collidable): boolean {
     const verticalCollision =
       other.pos.y + other.widthHeight.y > this.pos.y &&
       other.pos.y < this.pos.y + this.widthHeight.y;
     const horizontalCollision =
       other.pos.x < this.pos.x + other.widthHeight.x &&
       other.pos.x + other.widthHeight.x > this.pos.x;
-    return new Collision(verticalCollision, horizontalCollision);
+    return verticalCollision && horizontalCollision;
   }
 }
 
